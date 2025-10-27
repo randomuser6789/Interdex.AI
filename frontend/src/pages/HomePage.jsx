@@ -18,6 +18,8 @@ export default function HomePage() {
   const [canContinue, setCanContinue] = useState(false);
   const [error, setError] = useState(false);
 
+  const navigate = useNavigate();
+
   function back() {
     setStep(step - 1);
   }
@@ -27,45 +29,79 @@ export default function HomePage() {
       setError(true);
       return;
     }
+    setError(false);
     setStep(step + 1);
   }
 
   async function saveSessionData(id, data) {
     const ref = doc(db, "sessions", id);
     console.log("Saving session data to Firestore with ID:", id);
-
-    await setDoc(ref, {
-      ...data,
-      createdAt: serverTimestamp(),
-    });
-    console.log("Session data saved with ID:", id);
-    console.log(data);
+    try {
+      await setDoc(ref, {
+        ...data,
+        createdAt: serverTimestamp(),
+      });
+      console.log("Session data saved successfully to Firestore with ID:", id);
+    } catch (firestoreError) {
+      console.error("Error saving session data to Firestore:", firestoreError);
+    }
   }
 
   async function send() {
-    // create a session id and navigate to session page with form data
-    // use crypto.randomUUID when available, otherwise fallback
-    const id =
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    if (!email || questions.filter(q => q.trim() !== "").length === 0 || traits.filter(t => t.trim() !== "").length === 0 || recipients.filter(r => r.trim() !== "").length === 0) {
+      setError(true);
+      console.error("Validation failed: Missing required fields.");
+      return;
+    }
+    setError(false);
 
-    // Save session data to Firestore
-    await saveSessionData(id, {
-      email,
-      questions,
-      traits,
-      recipients,
-    });
+    const payload = {
+      questions: questions.filter(q => q.trim() !== ""),
+      traits: traits.filter(t => t.trim() !== ""),
+      employer_email: email,
+      applicant_emails: recipients.filter(r => r.trim() !== ""),
+    };
 
-    navigate(`/created`, {
-      state: {
-        id,
-      },
-    });
+    try {
+      console.log("Sending data to backend:", payload);
+      const response = await fetch('http://127.0.0.1:5000/create-interview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend error response:", errorData);
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      console.log("Backend response:", responseData);
+
+      const backendInterviewId = responseData.interview_link.split('/').pop();
+      await saveSessionData(backendInterviewId, {
+        email,
+        questions: payload.questions,
+        traits: payload.traits,
+        recipients: payload.applicant_emails,
+        reportLink: responseData.report_link,
+      });
+
+      navigate(`/created`, {
+        state: {
+          id: backendInterviewId,
+          reportLink: responseData.report_link,
+        },
+      });
+
+    } catch (fetchError) {
+      console.error("Error during send process:", fetchError);
+      setError(fetchError.message || "Failed to create interview. Please check the connection or try again.");
+    }
   }
-
-  const navigate = useNavigate();
 
   var page = null;
   switch (step) {
@@ -77,7 +113,7 @@ export default function HomePage() {
           error={error}
           setError={setError}
           setCanContinue={setCanContinue}
-        ></EmailPage>
+        />
       );
       break;
     case 1:
@@ -85,20 +121,30 @@ export default function HomePage() {
         <QuestionsPage
           questions={questions}
           setQuestions={setQuestions}
-        ></QuestionsPage>
+          setCanContinue={setCanContinue}
+        />
       );
       break;
     case 2:
-      page = <TraitsPage traits={traits} setTraits={setTraits}></TraitsPage>;
+      page = (
+       <TraitsPage
+          traits={traits}
+          setTraits={setTraits}
+          setCanContinue={setCanContinue}
+        />
+      );
       break;
     case 3:
       page = (
         <RecipientsPage
           recipients={recipients}
           setRecipients={setRecipients}
-        ></RecipientsPage>
+          setCanContinue={setCanContinue}
+        />
       );
       break;
+    default:
+      page = <div>Invalid step</div>;
   }
 
   return (
@@ -113,8 +159,14 @@ export default function HomePage() {
           </h1>
         ) : null}
       </div>
-      <div className="h-screen py-40 flex flex-col items-center justify-between">
+      <div className="h-screen py-40 flex flex-col items-center justify-between relative">
         {page}
+
+        {error && typeof error === 'string' && (
+          <div className="absolute top-20 text-red-500 bg-red-100 p-2 rounded">
+            Error: {error}
+          </div>
+        )}
 
         {step > 0 ? (
           <div className="absolute left-20">
@@ -130,11 +182,12 @@ export default function HomePage() {
           </div>
         ) : null}
 
-        <div className="absolute bottom-15">
+        <div className="absolute bottom-20">
           {step < 3 ? (
             <button
-              className="cursor-pointer text-grey-500 text-2xl focus-gap relative h-10 w-30 mb-5"
+              className="cursor-pointer text-grey-500 text-2xl focus-gap relative h-10 w-30 mb-5 disabled:opacity-50"
               onClick={nextStep}
+              disabled={!canContinue && step !== 0}
             >
               Next
               <div className="absolute top-0 h-10 flex items-center arrow right">
@@ -143,8 +196,9 @@ export default function HomePage() {
             </button>
           ) : (
             <button
-              className="cursor-pointer px-10 py-5 text-white text-2xl bg-gray-900 rounded-3xl send-btn"
+              className="cursor-pointer px-10 py-5 text-white text-2xl bg-gray-900 rounded-3xl send-btn disabled:opacity-50"
               onClick={send}
+              disabled={!canContinue}
             >
               Send
             </button>
