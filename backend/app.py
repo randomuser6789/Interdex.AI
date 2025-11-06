@@ -25,8 +25,8 @@ try:
 except Exception as e:
     print(f"Gemini error: {e}")
 
-verified_invite_sender_email = "YOUR EMAIL"
-verified_report_sender_email = "YOUR EMAIL"
+verified_invite_sender_email = "interdexai@gmail.com"
+verified_report_sender_email = "interdexai@gmail.com"
 
 interviews = {}
 results = {}
@@ -263,7 +263,7 @@ def upload_audio_and_evaluate():
                 "total_steps": 4
             }))
             if audio_gemini.state.name == "ACTIVE":
-                print("✅ Gemini file ACTIVE")
+                print("Gemini file ACTIVE")
                 break
             elif audio_gemini.state.name == "FAILED":
                 raise ValueError("Gemini upload failed: file processing failed.")
