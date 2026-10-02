@@ -12,6 +12,9 @@ We first ask the employers what specific questions and traits that they look for
 What services do you use?
 React, LiveKit, Flask, Gemini, GTTS (Google Text to Speech)
 
+<img width="638" height="586" alt="image" src="https://github.com/user-attachments/assets/7a2687b0-0638-43f3-98df-7c9edf33cb50" />
+
+
 image
 Roadmap
 React front-end
