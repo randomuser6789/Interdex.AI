@@ -39,3 +39,5 @@ React, LiveKit, Flask, Gemini, GTTS (Google Text to Speech)
       - what do you bring to our company?
    - objective based: questions that test the user on the end result
       - leetcode accuracy
+
+<img width="1062" height="678" alt="image" src="https://github.com/user-attachments/assets/b7bb0539-0bf9-4775-ac40-30ad274b8078" />
