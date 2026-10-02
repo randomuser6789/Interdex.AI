@@ -19,31 +19,21 @@ React, LiveKit, Flask, Gemini, GTTS (Google Text to Speech)
 1. React front-end
 
    i. cohesive employer landing-page
-
       a. start interview button
-
       b. form that asks for specific questions, traits, emails to look for in candidates, as well as the email from the employer
-
       c. submit form button
-
       d. create a session link for candidates. send the link to their emails
 
    ii. session link landing page
-
       a. candidates can click begin whenever they’re ready
-
       b. the TTS bot will ask them specific questions
-
       c. the candidate will press the unmute mic button to start
-
          a. as soon as they start speaking, the TTS bot will stop if it is still talking
-
       d. when the candidate pressing the mute mic button, it ends that question
 
 ### Specific Types of Questions Asked
 
 - subjective based: questions that test the user on their morals/goals
   - what do you bring to our company?
-
 - objective based: questions that test the user on the end result
   - leetcode accuracy
