@@ -1,6 +1,6 @@
 Set up an Automated Interview in Seconds.
 
-What is Interdex.ai?
+# What is Interdex.ai?
 Interdex.ai is a custom interview agent made on the basis of Google Gemini for employers to screen potential candidates to their company. We create tailored sessions for YOU to test specific questions and soft skills to your candidates.
 
 How is this unique?
